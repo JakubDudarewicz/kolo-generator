@@ -1,0 +1,7 @@
+--------- TO DO -----------
+
+przycisk do zmiany kroku
+
+wyrównanie interfejsu
+
+obs³uga AD
