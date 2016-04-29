@@ -14,6 +14,7 @@
 #include <avr\pgmspace.h>
 #include <util\delay.h>
 #include <stdlib.h>
+#include <math.h>
 
 void refresh(uint64_t freq, uint64_t amp, uint64_t fjump, uint64_t ajump, bool select){
 	char str[8];
@@ -47,7 +48,10 @@ void refresh(uint64_t freq, uint64_t amp, uint64_t fjump, uint64_t ajump, bool s
 int main()
 {
 DDRB = 0x00;
-PORTB|=_BV(PB0) | _BV(PB7) | _BV(PB6);
+PORTB|=_BV(PB0) | _BV(PB7) | _BV(PB6) | _BV(PB5);
+
+//PB6 - zmiana parametru
+//PB5 - zmiana skoku parametru
 
 lcd_init();
 for(uint8_t i = 0; i < 5; i++){
@@ -61,7 +65,7 @@ for(uint8_t i = 0; i < 5; i++){
 }
 
 
-uint64_t amp = 0, testf, testa, fjump = 1000, ajump = 10;
+uint64_t amp = 0, testf, testa, testfj, testaj, fjump = 1000, ajump = 10;
 bool select = 0, tests = 0;
 uint64_t freq;
 for(uint8_t i = 0; i < 6; i++)
@@ -72,14 +76,30 @@ while(1){
 	testa = amp;
 	tests = select;
 	
-	//////////PRZYCISK///////////
+	//////////INPUT///////////
 	if(!(PINB & _BV(PB6))){
 		select=!select;
-		_delay_ms(100);
+		_delay_ms(300);
 	}
 	while(!(PINB & _BV(PB6)));
 	
-	////////////ENKODER//////////
+	if(!(PINB & _BV(PB5))){ //wcisn¹æ i przekrêciæ
+		_delay_ms(100);
+		while(!(PINB & _BV(PB5)))
+		{
+			testfj = fjump;
+			testaj = ajump;
+			if(select){ //zabezpieczyæ
+				fjump *= pow(10, Read2StepEncoder());
+			}else{
+				ajump *= pow(10, Read2StepEncoder());
+			}
+			if((testfj!=fjump) | (testaj!=ajump)){
+				refresh(freq, amp, fjump, ajump, select);
+			}
+		}
+	}
+	
 	if(select){
 		freq += (fjump * Read2StepEncoder());
 	}else{
