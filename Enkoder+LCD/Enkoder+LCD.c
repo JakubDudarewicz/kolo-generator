@@ -15,7 +15,7 @@
 #include <util\delay.h>
 #include <stdlib.h>
 
-void refresh(uint32_t freq, uint32_t amp, uint32_t fjump, uint32_t ajump, bool select){
+void refresh(uint64_t freq, uint64_t amp, uint64_t fjump, uint64_t ajump, bool select){
 	char str[8];
 	lcd_cls();
 	lcd_goto(0,0);
@@ -61,9 +61,9 @@ for(uint8_t i = 0; i < 5; i++){
 }
 
 
-uint32_t amp = 0, testf, testa, fjump = 1000, ajump = 10;
+uint64_t amp = 0, testf, testa, fjump = 1000, ajump = 10;
 bool select = 0, tests = 0;
-uint32_t freq;
+uint64_t freq;
 for(uint8_t i = 0; i < 6; i++)
 	freq = 0;
 refresh(freq, amp, fjump, ajump, select);
