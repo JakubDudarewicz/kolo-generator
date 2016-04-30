@@ -14,9 +14,25 @@
 #include <avr\pgmspace.h>
 #include <util\delay.h>
 #include <stdlib.h>
-#include <math.h>
 
-void refresh(uint64_t freq, uint64_t amp, uint64_t fjump, uint64_t ajump, bool select){
+float power(uint32_t base, uint32_t ex){
+	// power of 0
+	if (ex == 0){
+		return 1;
+		// negative exponent
+		}else if( ex < 0){
+		return 1 / pow(base, -ex);
+		// even exponent
+		}else if ((uint32_t)ex % 2 == 0){
+		float half_pow = pow(base, ex/2);
+		return half_pow * half_pow;
+		//integer exponent
+		}else{
+		return base * pow(base, ex - 1);
+	}
+}
+
+void refresh(uint32_t freq, uint32_t amp, uint32_t fjump, uint32_t ajump, bool select){
 	char str[8];
 	lcd_cls();
 	lcd_goto(0,0);
@@ -45,8 +61,7 @@ void refresh(uint64_t freq, uint64_t amp, uint64_t fjump, uint64_t ajump, bool s
 	lcd_puttext(str);
 }
 
-int main()
-{
+int main(){
 DDRB = 0x00;
 PORTB|=_BV(PB0) | _BV(PB7) | _BV(PB6) | _BV(PB5);
 
@@ -54,23 +69,28 @@ PORTB|=_BV(PB0) | _BV(PB7) | _BV(PB6) | _BV(PB5);
 //PB5 - zmiana skoku parametru
 
 lcd_init();
-for(uint8_t i = 0; i < 5; i++){
+for(uint32_t i = 0; i < 5; i++){
 	lcd_goto(1,0);
 	lcd_puttext(PSTR("GIT GUD FAGGET"));
 	lcd_goto(2,1);
 	lcd_puttext(PSTR("420 BLAZE IT"));
 	_delay_ms(100);
 	lcd_cls();
-	_delay_ms(100);
+	_delay_ms(200);
 }
 
 
-uint64_t amp = 0, testf, testa, testfj, testaj, fjump = 1000, ajump = 10;
+uint32_t amp = 0, freq = 0, testf, testa, testfj, testaj, fjump = 1000, ajump = 10;
+
+/*
+freq, amp - wartoœci czestotliwoœci i amplitudy
+test - zmienne do sprawdzania zmian w wartoœciach do testów refresh
+fjump, ajump - zmienne wartoœci kroku zmiany amplitudy / czêstotliwoœci
+*/
+
 bool select = 0, tests = 0;
-uint64_t freq;
-for(uint8_t i = 0; i < 6; i++)
-	freq = 0;
 refresh(freq, amp, fjump, ajump, select);
+
 while(1){
 	testf = freq;
 	testa = amp;
@@ -89,11 +109,11 @@ while(1){
 		{
 			testfj = fjump;
 			testaj = ajump;
-			if(select){ //zabezpieczyæ
-				fjump *= pow(10, Read2StepEncoder());
+			if(select){
+				fjump *= power(10, Read2StepEncoder());
 				if(fjump < 1) fjump ++;
 			}else{
-				ajump *= pow(10, Read2StepEncoder());
+				ajump *= power(10, Read2StepEncoder());
 				if(ajump < 1) ajump ++;
 			}
 			if((testfj!=fjump) | (testaj!=ajump)){
@@ -103,9 +123,9 @@ while(1){
 	}
 	
 	if(select){
-		freq += (fjump * Read2StepEncoder());
+		freq += (fjump * (uint32_t)Read2StepEncoder());
 	}else{
-		amp += (ajump * Read2StepEncoder());
+		amp += (ajump * (uint32_t)Read2StepEncoder());
 	}
 	
 	///////////REFRESH///////////
