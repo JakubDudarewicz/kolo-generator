@@ -91,8 +91,10 @@ while(1){
 			testaj = ajump;
 			if(select){ //zabezpieczyæ
 				fjump *= pow(10, Read2StepEncoder());
+				if(fjump < 1) fjump ++;
 			}else{
 				ajump *= pow(10, Read2StepEncoder());
+				if(ajump < 1) ajump ++;
 			}
 			if((testfj!=fjump) | (testaj!=ajump)){
 				refresh(freq, amp, fjump, ajump, select);
